@@ -1,38 +1,69 @@
 #include <iostream>
-#include <string>
-#include <vector>
-#include <complex>
-#include <map>
+
 using namespace std;
 
-map<int, bool> canSeeTable;
-typedef struct {
+int X[12];
+int Y[12];
+int length=0;
+int nUnattackable = 0;
+int maxLevel = 0;
+int sizeBoard=0;
+int nCase = 0;
+unsigned int clearSign = ~(0x1<<31);
 
-  unsigned int x;
-  unsigned int y;
-} position;
 
-inline unsigned int mapIndex( const position& A, const position& B)
+bool isUnattackableSet(int _X[], int _Y[], int Cx, int Cy)
 {
-  return ( (A.x & 0xF) << 12) | ( (A.y & 0xF) << 8 ) | ( (B.x & 0xF) << 4 ) |  (B.y & 0xF); 
+    if(length == 0)
+        return true;
+    
+    for(int i = length-1; i >= 0 ; i--) {
+        if( !(_X[i] ^ Cx) ) {
+            return false;
+        } else if ( !(_Y[i] ^ Cy)) {
+            return false;
+        } else if ( abs(_X[i]-Cx) == abs(_Y[i]-Cy) ) {
+            return false;
+        }
+    }
+    return true;
 }
 
-bool canSee( const position& A, const position& B)
+void processLevel(int _level)
 {
-  if(A.x == B.x || A.y == B.y) return true;
-  else if( abs( A.x-B.x) == abs(A.y-B.y) ) return true;
-  return false;
+    
+    //if level reaches to the end, succeeding case inc. unattackable
+    if(_level == maxLevel+1)  {
+        nUnattackable++;
+        //pop and return
+        length--;
+        return;
+    }
+    
+    for(int i = 0 ; i < sizeBoard ; i++) {
+        if(isUnattackableSet(X, Y, i, _level) ) {
+            X[_level] = i;
+            Y[_level] = _level;
+            length++;
+            processLevel(_level+1);
+        }
+    }
+    length--;
+    return;
+    
 }
 
 int main()
 {
-    int nTestCase = 0;
-    cin >> nTestCase;
-
-    while( nTestCase-- ){
-      unsigned int boardSize = 0;
-      cin >> boardSize;
+    cin >> nCase;
+    while( nCase-- ){
+        nUnattackable = 0;
+        length = 0;
+        cin >> sizeBoard ;
+        if(sizeBoard > 12) return false;
+        if(sizeBoard < 1) return false;
+        maxLevel = sizeBoard-1;
+        processLevel(0);
+        cout << nUnattackable << endl;
     }
 }
-
-
